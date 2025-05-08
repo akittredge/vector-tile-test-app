@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
-  import { PMTiles } from 'pmtiles';
+  import { PMTiles, Protocol } from 'pmtiles';
   import { base } from '$app/paths'; // Import base path
 
   let mapContainer;
@@ -14,7 +14,7 @@
   const pmtilesUrl = `${base}/sample.pmtiles`;
 
   onMount(() => {
-    const protocol = new pmtiles.Protocol();
+    const protocol = new Protocol();
     maplibregl.addProtocol('pmtiles', protocol.tile);
 
     map = new maplibregl.Map({
