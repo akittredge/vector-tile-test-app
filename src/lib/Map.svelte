@@ -11,6 +11,7 @@
   export let currentFilterStore = null; // Expecting a Svelte readable store
 
   const pmtilesUrl = 'https://vector-tile-test-app.s3.us-east-1.amazonaws.com/all_boundaries.pmtiles';
+  const cartoPositronNoLabelsStyle = 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json';
 
   let currentFilterValue = '';
   let unsubscribeFilterStore = () => {};
@@ -32,38 +33,7 @@
 
     map = new maplibregl.Map({
       container: mapContainer,
-      style: {
-        version: 8,
-        sources: {
-          's3-tiles': { // Unique source name
-            type: 'vector',
-            url: `pmtiles://${pmtilesUrl}`,
-            attribution: 'Data from S3' // Update attribution as needed
-          }
-        },
-        layers: [
-          {
-            id: 'background',
-            type: 'background',
-            paint: {
-              'background-color': '#f0f0f0'
-            }
-          },
-          {
-            id: 'polygons-layer',
-            type: 'fill',
-            source: 's3-tiles', // Placeholder - update this!
-            'source-layer': 'all_boundaries',
-            // Initial filter can be null (show all) or set based on initial store value
-            // filter: ['==', ['get', 'id'], initialFilterValue], // Handled by subscription
-            paint: {
-              'fill-color': '#3bb2d0',
-              'fill-opacity': 0.5,
-              'fill-outline-color': '#000000'
-            }
-          }
-        ]
-      },
+      style: cartoPositronNoLabelsStyle, // Use Carto basemap style
       center: [(-74.66184938203348 + -72.97034397052578) / 2, (40.25252938803669 + 41.282818272331866) / 2], // Center of maxBounds
       zoom: 9, // Initial zoom
       minZoom: 9,
@@ -91,7 +61,27 @@
     }
 
     map.on('load', () => {
-      // Apply the filter once the map style is loaded, using the current value from the store
+      // Add your S3 PMTiles source
+      map.addSource('s3-tiles', {
+        type: 'vector',
+        url: `pmtiles://${pmtilesUrl}`,
+        attribution: 'Data from S3' // Update attribution as needed
+      });
+
+      // Add your polygons layer
+      map.addLayer({
+        id: 'polygons-layer',
+        type: 'fill',
+        source: 's3-tiles',
+        'source-layer': 'all_boundaries', // Ensure this is the correct layer name
+        paint: {
+          'fill-color': '#3bb2d0',
+          'fill-opacity': 0.5,
+          'fill-outline-color': '#000000'
+        }
+      });
+      
+      // Apply initial filter if any
       updateMapFilter(currentFilterValue);
     });
 
