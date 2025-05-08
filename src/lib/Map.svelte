@@ -3,15 +3,12 @@
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { PMTiles, Protocol } from 'pmtiles';
-  import { base } from '$app/paths'; // Import base path
+  // import { base } from '$app/paths'; // No longer needed for external URL
 
   let mapContainer;
   let map;
 
-  // Construct the PMTiles URL using the base path
-  // The PMTiles file will be in the static folder, so it will be at the root of the deployed site,
-  // or at the root of the base path if one is set.
-  const pmtilesUrl = `${base}/sample.pmtiles`;
+  const pmtilesUrl = 'https://vector-tile-test-app.s3.us-east-1.amazonaws.com/all_boundaries.pmtiles';
 
   onMount(() => {
     const protocol = new Protocol();
@@ -22,10 +19,10 @@
       style: {
         version: 8,
         sources: {
-          'sample-tiles': { // Unique source name
+          's3-tiles': { // Unique source name
             type: 'vector',
             url: `pmtiles://${pmtilesUrl}`,
-            attribution: 'Sample Data'
+            attribution: 'Data from S3' // Update attribution as needed
           }
         },
         layers: [
@@ -37,32 +34,10 @@
             }
           },
           {
-            id: 'points-layer',
-            type: 'circle',
-            source: 'sample-tiles',
-            'source-layer': 'sample.geojson', // Tippecanoe defaults to the filename as the layer name
-            filter: ['==', '$type', 'Point'],
-            paint: {
-              'circle-radius': 5,
-              'circle-color': '#007cbf'
-            }
-          },
-          {
-            id: 'lines-layer',
-            type: 'line',
-            source: 'sample-tiles',
-            'source-layer': 'sample.geojson',
-            filter: ['==', '$type', 'LineString'],
-            paint: {
-              'line-color': '#ff9900',
-              'line-width': 2
-            }
-          },
-          {
             id: 'polygons-layer',
             type: 'fill',
-            source: 'sample-tiles',
-            'source-layer': 'sample.geojson',
+            source: 's3-tiles', // Placeholder - update this!
+            'source-layer': 'all_boundaries',
             filter: ['==', '$type', 'Polygon'],
             paint: {
               'fill-color': '#3bb2d0',
@@ -72,19 +47,22 @@
           }
         ]
       },
-      center: [0, 0],
-      zoom: 1
+      center: [(-74.66184938203348 + -72.97034397052578) / 2, (40.25252938803669 + 41.282818272331866) / 2], // Center of maxBounds
+      zoom: 9, // Initial zoom
+      minZoom: 9,
+      maxZoom: 16,
+      maxBounds: [
+        [-74.66184938203348, 40.25252938803669],
+        [-72.97034397052578, 41.282818272331866]
+      ]
     });
 
     map.on('load', () => {
-      // Optional: Fit map to the bounds of the PMTiles data after it loads
-      // This requires the PMTiles plugin to expose bounds, or you might need to define them manually
-      // For simplicity, we'll skip this for now but it's a common enhancement.
+      // You might want to fit map to the bounds of your new S3 PMTiles data
     });
 
     return () => {
       map.remove();
-      // Protocol cleanup consideration mentioned earlier still applies.
     };
   });
 </script>
