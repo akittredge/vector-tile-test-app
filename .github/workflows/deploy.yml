@@ -1,0 +1,65 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # To push to gh-pages branch
+      pages: write # To deploy to Pages
+      id-token: write # To enable OIDC for secure deployment (optional but recommended)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Tippecanoe and convert GeoJSON to PMTiles
+        run: |
+          mkdir -p static # Ensure static directory exists
+          docker run --rm -v ${{ github.workspace }}/data:/data -v ${{ github.workspace }}/static:/output \
+            ghcr.io/felt/tippecanoe:latest \
+            tippecanoe -o /output/sample.pmtiles -zg --drop-densest-as-needed --extend-zooms-if-still-dropping /data/sample.geojson
+        # Explanation of Tippecanoe options:
+        # -o /output/sample.pmtiles: Output file path within the Docker container (maps to static/sample.pmtiles on host)
+        # -zg: Automatically determine zoom levels based on feature density and size
+        # --drop-densest-as-needed: If features are too dense, drop some to keep tile sizes manageable
+        # --extend-zooms-if-still-dropping: If features are still being dropped, extend the zoom range
+        # /data/sample.geojson: Input file path within the Docker container (maps to data/sample.geojson on host)
+
+      - name: Build SvelteKit app
+        run: npm run build
+        env:
+          # If your GitHub repository is, for example, `your-username/your-repo-name`,
+          # and you're deploying to `your-username.github.io/your-repo-name/`,
+          # you need to set the base path.
+          # SvelteKit uses `paths.base` in svelte.config.js, which can be set via an environment variable.
+          # If deploying to `your-username.github.io` (a root domain for the user/org),
+          # then this base path is not needed (empty string).
+          # Replace `your-repo-name` with your actual repository name if deploying to a subpath.
+          BASE_PATH: '/${{ github.event.repository.name }}' # Or '' if deploying to root
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build # Default build output directory for adapter-static
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0, 0]
+      },
+      "properties": {
+        "name": "Null Island"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[-10, 10], [-20, 20], [-30, 10]]
+      },
+      "properties": {
+        "name": "Sample Line"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[ [10, -10], [20, -10], [20, -20], [10, -20], [10, -10] ]]
+      },
+      "properties": {
+        "name": "Sample Polygon"
+      }
+    }
+  ]
+} 
