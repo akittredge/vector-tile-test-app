@@ -35,13 +35,13 @@ jobs:
         run: npm install
 
       - name: Pull Tippecanoe image
-        run: docker pull mapbox/tippecanoe:latest
+        run: docker pull morlov/tippecanoe:latest
 
       - name: Install Tippecanoe and convert GeoJSON to PMTiles
         run: |
           mkdir -p static # Ensure static directory exists
           docker run --rm -v ${{ github.workspace }}/data:/data -v ${{ github.workspace }}/static:/output \
-            mapbox/tippecanoe:latest \
+            morlov/tippecanoe:latest \
             tippecanoe -o /output/sample.pmtiles -zg --drop-densest-as-needed --extend-zooms-if-still-dropping /data/sample.geojson
         # Explanation of Tippecanoe options:
         # -o /output/sample.pmtiles: Output file path within the Docker container (maps to static/sample.pmtiles on host)
