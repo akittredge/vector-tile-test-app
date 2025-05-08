@@ -24,12 +24,11 @@ jobs:
           node-version: '20' # Or your preferred Node.js version
           cache: 'npm'
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }} # or github.repository_owner
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Install dependencies
         run: npm install
@@ -38,7 +37,7 @@ jobs:
         run: |
           mkdir -p static # Ensure static directory exists
           docker run --rm -v ${{ github.workspace }}/data:/data -v ${{ github.workspace }}/static:/output \
-            ghcr.io/felt/tippecanoe:latest \
+            mapbox/tippecanoe:latest \
             tippecanoe -o /output/sample.pmtiles -zg --drop-densest-as-needed --extend-zooms-if-still-dropping /data/sample.geojson
         # Explanation of Tippecanoe options:
         # -o /output/sample.pmtiles: Output file path within the Docker container (maps to static/sample.pmtiles on host)
